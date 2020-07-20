@@ -12,6 +12,44 @@ CHIP FullAdder {
     OUT sum,     // Right bit of a + b + c
         carry;   // Left bit of a + b + c
 
+    //truth table
+    /*
+    |   a   |   b   |   c   |  sum  | carry |
+    |   0   |   0   |   0   |   0   |   0   |
+    |   0   |   0   |   1   |   1   |   0   |
+    |   0   |   1   |   0   |   1   |   0   |
+    |   0   |   1   |   1   |   0   |   1   |
+    |   1   |   0   |   0   |   1   |   0   |
+    |   1   |   0   |   1   |   0   |   1   |
+    |   1   |   1   |   0   |   0   |   1   |
+    |   1   |   1   |   1   |   1   |   1   |
+    */
+    /*
+    option 1:
+    sum = and(!a, !b, c) or and(!a, b, !c) or and(a, !b, !c) or and(a,b,c)
+    carry = and(!a, b, c) or and(a,!b, c) or and(a,b,!c) or and(a,b,c)
+
+    And(a=a, b=b, out=aAndb)
+    And(a=aAndb, b=b, out=aAndBandC)
+
+
+    ok, 
+    sum = (a xor b) xor c
+
+    option 2:
+    should it work with two half adders?
+    a - HA - sumab -----\
+    b -/   \ c1 --------  HA - sum2
+    c -------------/     \--- \  c2
+
+  
+
+    One of the carry bits will get lost
+
+    */
     PARTS:
-    // Put you code here:
+    HalfAdder(a=a, b=b, sum=sumab, carry=c1);
+    HalfAdder(a=sumab, b=c, sum=sum, carry=c2);
+    Or(a=c1, b=c2, out=carry);
+    
 }
