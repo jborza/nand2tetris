@@ -13,5 +13,21 @@ CHIP Inc16 {
     OUT out[16];
 
     PARTS:
-   // Put you code here:
+    //You keep on flipping bits until you reach a 0 that you flip to 1. And at that point you stop. 
+    Not(in=in[0], out=out[0]);
+    HalfAdder(a=in[1], b=in[0], carry=c1, sum=out[1]);
+    HalfAdder(a=in[2], b=c1, carry=c2, sum=out[2]);
+    HalfAdder(a=in[3], b=c2, carry=c3, sum=out[3]);
+    HalfAdder(a=in[4], b=c3, carry=c4, sum=out[4]);
+    HalfAdder(a=in[5], b=c4, carry=c5, sum=out[5]);
+    HalfAdder(a=in[6], b=c5, carry=c6, sum=out[6]);
+    HalfAdder(a=in[7], b=c6, carry=c7, sum=out[7]);
+    HalfAdder(a=in[8], b=c7, carry=c8, sum=out[8]);
+    HalfAdder(a=in[9], b=c8, carry=c9, sum=out[9]);
+    HalfAdder(a=in[10], b=c9, carry=c10, sum=out[10]);
+    HalfAdder(a=in[11], b=c10, carry=c11, sum=out[11]);
+    HalfAdder(a=in[12], b=c11, carry=c12, sum=out[12]);
+    HalfAdder(a=in[13], b=c12, carry=c13, sum=out[13]);
+    HalfAdder(a=in[14], b=c13, carry=c14, sum=out[14]);
+    HalfAdder(a=in[15], b=c14, carry=c15, sum=out[15]);
 }
