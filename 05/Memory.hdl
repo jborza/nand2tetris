@@ -27,5 +27,39 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
+    //address breakdown:
+    //0x0000-0x3FFF -> RAM16K 
+    //0x4000-0x5FFF -> Screen 
+    //0x6000 -> Keyboard      
+
+    // 0x0000 =  000 0000 0000 0000 
+    // 0x
+    // 0x3fff =  011 1111 1111 1111
+    // 0x4000 =  100 0000 0000 0000
+    // 0x5fff =  101 1111 1111 1111
+    // 0x6000 =  110 0000 0000 0000
+    // we could route to RAM based on first 2 bits being 00 or 01
+    // route to screen if first 2 bits are 10
+    // route to keyboard if first 2 bits are 11 AND other bits are zeroes (Or8Way?) or do we build Or12Way? Or compare to a constant with And16?
+
+    
+    // switch(in[14..15])
+    //   case '00'
+    //   case '01'
+    //      ram
+    //   case '10'
+    //      screen
+    //   case '11'
+    // this means we can use a 4-way mux on bits 14..15 and OR screen selectors together
+    //similar DMux on the other end connected to Out bit
+
     // Put your code here:
+    DMux4Way(in=load, sel=address[13..14], a=loadRam1, b=loadRam2, c=loadScreen, d=loadKbd);
+    Or(a=loadRam1, b=loadRam2, out=loadRam);
+    
+    RAM16K(in=in, load=loadRam, address=address[0..13], out=ramOut);
+    Screen(in=in, load=loadScreen, address=address[0..12], out=screenOut);
+    Keyboard(out=kbdOut);
+
+    Mux4Way16(a=ramOut, b=ramOut, c=screenOut, d=kbdOut, sel=address[13..14], out=out);
 }
