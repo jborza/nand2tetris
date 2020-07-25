@@ -12,3 +12,55 @@
 // the screen should remain fully clear as long as no key is pressed.
 
 // Put your code here.
+
+//TODO 
+//first loop: listen to keyboard input and store pressed/nonpressed to variable (R1) 
+//inner loop: for i in 0 to screen_length to set ram[i+screen_base] <= R1
+//better version: redraw on key state change
+
+// SCREEN=16384, KBD=24576
+// screen size: 512x256
+
+//pseudocode:
+//@color = @kbd
+(BEGIN)
+@KBD
+D=M
+@R0
+M=D
+//set color to 1
+@color
+M=D
+
+//for i from 16384 to 24576
+@i
+M=0
+
+@SCREEN
+D=A
+// i = @screen
+@i
+M=D
+
+(LOOP)
+//load @color, store to address where @i points
+// *@i = @color
+@color
+D=M
+@i
+A=M
+M=D
+//@i++
+@i
+M=M+1
+D=M
+
+//until i < @KBD
+@KBD
+D=A-D
+@LOOP
+D; JGT
+//jump to beginning of the program
+(END)
+@BEGIN
+0; JMP 
