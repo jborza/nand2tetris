@@ -11,10 +11,25 @@
  * else                    out[t+1] = out[t]
  */
 
+ //this means reset has the highest priority (occurs latest)
+ //so the ordering should be 
+
+ //nop < inc < load < reset
+
 CHIP PC {
     IN in[16],load,inc,reset;
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    //stage 0: incrementer and mux(reg / reg+1)
+    Inc16(in=output, out=outIncremented);
+    Mux16(a=output, b=outIncremented, sel=inc, out=incMuxOut);
+    //stage 1: load mux
+    Mux16(a=incMuxOut, b=in, sel=load, out=loadMuxOut);
+    //stage 2: reset mux
+    Mux16(a=loadMuxOut, b=false, sel=reset, out=resetMuxOut);
+    //stage 3: register + output    
+    Register(in=resetMuxOut, load=true, out=output);
+    //forwarder
+    Add16(a=output, b=false, out=out);
 }
