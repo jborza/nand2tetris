@@ -44,6 +44,7 @@ for line in fileinput.input():
         line = line[:line.index('//')].strip()
     lines.append(line)
 
+# push D register to stack
 def emit_push_d():
     #set address pointed by SP
     print('@SP')
@@ -51,18 +52,15 @@ def emit_push_d():
     #now M points to M[SP]
     print('M=D')
     # increment SP
-    print('D=D+1')
+    print('@SP')
+    print('D=M+1')
+    print('M=D')
 
 def handle_push_constant(constant):
     print(f'@{constant}')
     print('D=A')
     # store constant (in D) to address pointed by SP
-    print('@SP')
-    print('A=M')
-    #now M points to M[SP]
-    print('M=D')
-    # increment SP
-    print('D=D+1')
+    emit_push_d()
 
 def emit_add():
     #pop x,y, add, push
@@ -89,6 +87,16 @@ def emit_add():
     emit_push_d()
 
 
+def initialize_vm():
+    # set *sp=256
+    print('@256')
+    print('D=A')
+    print('@SP')
+    print('M=D')
+    print('@0')
+    print('D=A')
+
+initialize_vm()
 for line in lines:
     print(f'//{line}')
     m = re.match('push constant (.+?)', line)
