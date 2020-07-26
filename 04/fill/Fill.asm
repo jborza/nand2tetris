@@ -24,14 +24,23 @@
 //pseudocode:
 //@color = @kbd
 (BEGIN)
-@KBD
-D=M
-@R0
-M=D
-//set color to 1
+//reset @color
+@0
+D=A
 @color
 M=D
-
+@KBD
+D=M
+//@R0
+//M=D
+//set color to 1 if D > 0
+@WASZERO
+D; JEQ //jump if no key pressed
+@0
+D=!A
+@color
+M=D
+(WASZERO)
 //for i from 16384 to 24576
 @i
 M=0
