@@ -65,6 +65,7 @@ CHIP CPU {
 
    
     //prepare C instruction stuff
+    //instruction[15] means it's C instruction
     Not(in=instruction[15], out=aInstruction);
     And(a=instruction[15], b=instruction[5], out=writeA);
     And(a=instruction[15], b=instruction[4], out=writeM);
@@ -73,7 +74,7 @@ CHIP CPU {
     Mux16(a=instruction, b=aluOut, sel=writeA, out=outAMux);
 
     //A register fed by ALU output or address bits
-    Register(in=outAMux, load=writeA, out=outAReg);
+    Register(in=outAMux, load=aInstruction, out=outAReg);
     //D register
     Register(in=aluOut, load=writeD, out=outDReg);
 
