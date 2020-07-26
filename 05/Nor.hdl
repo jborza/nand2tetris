@@ -1,0 +1,17 @@
+// Nor truth table
+// a | b | out
+// 0 | 0 | 1
+// 0 | 1 | 0
+// 1 | 0 | 0
+// 1 | 1 | 0
+
+CHIP Nor {
+    IN a, b;
+    OUT out;
+
+    PARTS:
+    Nand(a=a, b=a, out=nota);
+    Nand(a=b, b=b, out=notb);
+    Nand(a=nota, b=notb, out=negOut);
+    Nand(a=negOut, b=negOut, out=out);
+}
