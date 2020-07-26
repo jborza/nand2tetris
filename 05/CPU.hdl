@@ -48,7 +48,7 @@ CHIP CPU {
     // i=opcode [0]
     //    a=function (toggles between A if a=0 and M if a=1) [12]
     //     cccccc = ALU bits (zx nx zy ny f no) [11 10 9 8 7 6]
-    //           ddd=AMD destinations respectively [a=5,m=4,d=3]
+    //           ddd=ADM destinations respectively [a=5,d=4,m=3]
     //              jjj=jumps [2,1,0]
     // jump table:
     // j1 j2 j3  mnemonic
@@ -65,37 +65,34 @@ CHIP CPU {
 
    
     //prepare C instruction stuff
-    //instruction[15] means it's C instruction
+    //instruction[15]=1 means it's C instruction
     Not(in=instruction[15], out=aInstruction);
+    // note that we apply the write rules only to a C instruction (instruction[15])
     And(a=instruction[15], b=instruction[5], out=writeA);
-    And(a=instruction[15], b=instruction[4], out=writeM);
-    And(a=instruction[15], b=instruction[3], out=writeD);
+    And(a=instruction[15], b=instruction[4], out=writeD);
+    And(a=instruction[15], b=instruction[3], out=writeM);
     //this "A mux" feeds A register with alu output (if target A bit is set)
-    Mux16(a=instruction, b=aluOut, sel=writeA, out=outAMux);
+    Mux16(a=aluOut, b=instruction, sel=aInstruction, out=outAMux);
 
     //A register fed by ALU output or address bits
-    Register(in=outAMux, load=aInstruction, out=outAReg);
+    Or(a=aInstruction, b=writeA, out=doWriteA);
+    ARegister(in=outAMux, load=doWriteA, out=outAReg, out[0..14]=addressM);
     //D register
-    Register(in=aluOut, load=writeD, out=outDReg);
+    DRegister(in=aluOut, load=writeD, out=outDReg);
 
-    //this mux is driven by the a bit
+    //this mux is driven by the 'a' bit (a or memory)
     Mux16(a=outAReg, b=inM, sel=instruction[12], out=aOrM);
-    ALU(x=outDReg, y=aOrM, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=aluOut, zr=aluZ, ng=aluN);
+    //ALU plugged in to D, A/M, instruction ALU bits and status flags on the output
+    ALU(x=outDReg, y=aOrM, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=aluOut, out=outM, zr=aluZr, ng=aluNg);
 
-    // jump combination from ALU output
-    // aluP = aluPositive = Nor(aluZ, aluN);
-    Nor(a=aluZ, b=aluN, out=aluP);
-    //we can toggle jump in 3 stages - equal:
-    And(a=instruction[1], b=aluZ, out=doEq);
-    And(a=instruction[2], b=aluN, out=doNeg);
-    And(a=instruction[0], b=aluP, out=doPos);
-    Or(a=doEq, b=doNeg, out=doEqOrNeg);
-    Or(a=doEqOrNeg, b=doPos, out=doJmp);
-    Not(in=doJmp, out=pcInc);
+    // jump combination from ALU output and instructions
+    // note that we apply the jump rules only to a C instruction (instruction[15])
+    And(a=instruction[15], b=instruction[0], out=jg);
+    And(a=instruction[15], b=instruction[1], out=je);
+    And(a=instruction[15], b=instruction[2], out=jl);
+    // jump logic combines instruction jump bits and ALU bits
+    JumpLogic(ng=aluNg, zr=aluZr, jg=jg, je=je, jl=jl, jmp=doJmp, inc=pcInc);
 
     // PC is fed from A register, should increment unless jump is successful
     PC(in=outAReg, load=doJmp, inc=pcInc, reset=reset, out[0..14]=pc);
-    //M is written (writeM) only for M=??? (target bit)
-    Mux16(a=aluOut, b=false, sel=false, out=outM);
-    Mux16(a=outAReg, b=false, sel=false, out[0..14]=addressM);
 }
