@@ -1,0 +1,15 @@
+CHIP JumpLogic {
+    IN ng, zr, jg, je, jl;
+    OUT jmp, inc;
+
+    PARTS:
+    //create positive bit
+    Nor(a=zr, b=ng, out=pos);
+    And(a=jl, b=ng, out=doJL);
+    And(a=je, b=zr, out=doJE);
+    And(a=jg, b=pos, out=doJG);
+
+    Or(a=doJE, b=doJL, out=doJLE);
+    Or(a=doJG, b=doJLE, out=doJMP, out=jmp);
+    Not(in=doJMP, out=inc);
+}
