@@ -1,10 +1,9 @@
 # Hack assembler
 #
-# A instruction
-# C instruction
+# A instruction - @...
+# C instruction - dest = comp ; jump
 
 import fileinput
-import sys
 
 def process_a_instruction(line):
     a = int(line.replace('@',''))
@@ -59,12 +58,15 @@ def get_comp(comp):
 def process_c_instruction(line):
     # format:
     # dest = comp ; jump
+
     rest_jmp = line.split(';')
     jmp = ''
     dest = ''
+    # deal with optional jump
     if(len(rest_jmp) == 2):
         jmp = rest_jmp[1]
     rest_jmp = rest_jmp[0]
+    # deal with optional dest
     dest_comp = rest_jmp.split('=')
     if(len(dest_comp) == 2):
         (dest,comp) = dest_comp
