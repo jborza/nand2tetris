@@ -46,7 +46,7 @@ CHIP CPU {
     // further decode C instruction into JMP, DST and ALU bits
     // ixxaccccccdddjjj
     // i=opcode [0]
-    //    a=function (toggles between A if a=0 and M if a=1)
+    //    a=function (toggles between A if a=0 and M if a=1) [12]
     //     cccccc = ALU bits (zx nx zy ny f no) [11 10 9 8 7 6]
     //           ddd=AMD destinations respectively [a=5,m=4,d=3]
     //              jjj=jumps [2,1,0]
@@ -65,19 +65,20 @@ CHIP CPU {
 
    
     //prepare C instruction stuff
-    And(a=instruction[15], b=false, out=aInstruction);
-    And(a=aInstruction, b=instruction[5], out=loadA);
-    And(a=aInstruction, b=instruction[5], out=writeM);
-    And(a=aInstruction, b=instruction[5], out=loadD);
-    //this mux feeds A register with alu output (if target A bit is set)
-    Mux16(a=inM, b=aluOut, sel=loadA, out=outAMux);
+    Not(in=instruction[15], out=aInstruction);
+    And(a=instruction[15], b=instruction[5], out=writeA);
+    And(a=instruction[15], b=instruction[4], out=writeM);
+    And(a=instruction[15], b=instruction[3], out=writeD);
+    //this "A mux" feeds A register with alu output (if target A bit is set)
+    Mux16(a=instruction, b=aluOut, sel=writeA, out=outAMux);
 
     //A register fed by ALU output or address bits
-    Register(in=outAMux, load=loadA, out=outAReg);
+    Register(in=outAMux, load=writeA, out=outAReg);
     //D register
-    Register(in=aluOut, load=loadD, out=outDReg);
+    Register(in=aluOut, load=writeD, out=outDReg);
 
-    Mux16(a=outAReg, b=inM, out=aOrM);
+    //this mux is driven by the a bit
+    Mux16(a=outAReg, b=inM, sel=instruction[12], out=aOrM);
     ALU(x=outDReg, y=aOrM, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=aluOut, zr=aluZ, ng=aluN);
 
     // jump combination from ALU output
@@ -92,6 +93,8 @@ CHIP CPU {
     Not(in=doJmp, out=pcInc);
 
     // PC is fed from A register, should increment unless jump is successful
-    PC(in=outAReg, load=doJmp, inc=pcInc, reset=reset, out=pcOut);
+    PC(in=outAReg, load=doJmp, inc=pcInc, reset=reset, out[0..14]=pc);
     //M is written (writeM) only for M=??? (target bit)
+    Mux16(a=aluOut, b=false, sel=false, out=outM);
+    Mux16(a=outAReg, b=false, sel=false, out[0..14]=addressM);
 }
