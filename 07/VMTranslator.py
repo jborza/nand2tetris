@@ -81,9 +81,11 @@ def emit_pop_to_m():
 
 def emit_xy_operation(operand):
     #pop x,y, operation, push
+    #pop x
     emit_pop_to_d()
 
     #decrement SP to point to Y
+    #pop y
     emit_pop_to_m()
 
     #add to D
@@ -95,6 +97,35 @@ def emit_xy_operation(operand):
 def emit_add():
     emit_xy_operation('+')
 
+def emit_sub():
+    emit_xy_operation('-')
+
+def emit_and():
+    emit_xy_operation('&')
+
+def emit_or():
+    emit_xy_operation('|')
+
+def emit_eq():
+    #pop x
+    emit_pop_to_m()
+    #compare to 
+    #TODO finish!!
+
+#unary operations
+def emit_unary(operation):
+    #pop x
+    emit_pop_to_m()
+    #do operation
+    print('-D')
+     #push result
+    emit_push_d()
+
+def emit_neg():
+    emit_unary('-')
+
+def emit_not():
+    emit_unary('!')
 
 def initialize_vm():
     # set *sp=256
