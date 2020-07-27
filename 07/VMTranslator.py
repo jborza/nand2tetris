@@ -62,6 +62,12 @@ def handle_push_constant(constant):
     # store constant (in D) to address pointed by SP
     emit_push_d()
 
+def emit_pop_to_d():
+    pass
+
+def emit_pop_to_m():
+    pass
+
 def emit_add():
     #pop x,y, add, push
     
@@ -103,8 +109,31 @@ for line in lines:
     if(m):
         constant = m.group(1)
         handle_push_constant(constant)
-    if(line == 'add'):
-        emit_add();
-
+    elif(line == 'add'):
+        emit_add()
+    elif line == 'sub':
+        emit_sub()
+    elif(line == 'neg'):
+        emit_neg()
+    elif(line == 'eq'):
+        emit_eq()
+    elif(line == 'gt'):
+        emit_gt()
+    elif(line == 'lt'):
+        emit_lt()
+    elif(line == 'and'):
+        emit_and()
+    elif(line == 'or'):
+        emit_or()
+    elif(line == 'not'):
+        emit_not()
+    else:
+        raise Exception(f'Unknown operation:{line}')
         
-    
+    # neg = -y
+# eq  = x == 0
+# gt  = x > y
+# lt  = x < y
+# and = x and y
+# or  = x or y
+# not = not x
