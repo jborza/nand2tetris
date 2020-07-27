@@ -93,7 +93,7 @@ def emit_xy_operation(operand):
     #pop y
     emit_pop_to_m()
 
-    #add to D
+    #perform operation between D and M
     print(f'D={operand}')
     
     #push result
@@ -126,16 +126,15 @@ def emit_neg():
 def emit_not():
     emit_unary('!')
 
-def emit_lt():
-    #x<y
+def emit_boolean(operation):
     global branch_counter
     branch_counter+=1
     #pop x
     emit_pop_to_d()
     #pop y to m
     emit_pop_to_m()
-    #3-4 = -1
-    # we can subtract them, if the result is negative (x-y<0), return -1, else return 0
+    # we can subtract them
+    # later jump if the result is unexpected (not negative, not equal, not positive)
     print('D=M-D')
     #set up stack
     print('@SP')
@@ -143,69 +142,27 @@ def emit_lt():
     #eagerly set result to equal (true)
     print('M=-1')
     #jump to 'notequal' part to return 0
-    print(f'@ENDLT.{branch_counter}')
-    print('D;JLT')
+    print(f'@ENDCMP.{branch_counter}')
+    print(f'D;{operation}')
     #not equal - set *SP=0
     print('@SP')
     print('A=M')
     print('M=0')
-    print(f'(ENDLT.{branch_counter})')
+    print(f'(ENDCMP.{branch_counter})')
     #increase SP
     print('@SP')
     print('M=M+1')
+
+def emit_lt():
+    #x<y
+   emit_boolean('JLT')
 
 def emit_gt():
     #x>y
-    global branch_counter
-    branch_counter+=1
-    #pop x
-    emit_pop_to_d()
-    #pop y to m
-    emit_pop_to_m()
-    # we can subtract them, if the result is positive (x-y>0), return -1, else return 0
-    print('D=M-D')
-    #set up stack
-    print('@SP')
-    print('A=M')
-    #eagerly set result to equal (true)
-    print('M=-1')
-    #jump to 'notequal' part to return 0
-    print(f'@ENDGT.{branch_counter}')
-    print('D;JGT')
-    #not equal - set *SP=0
-    print('@SP')
-    print('A=M')
-    print('M=0')
-    print(f'(ENDGT.{branch_counter})')
-    #increase SP
-    print('@SP')
-    print('M=M+1')
+    emit_boolean('JGT')
 
 def emit_eq():
-    global branch_counter
-    branch_counter+=1
-    #pop x
-    emit_pop_to_d()
-    #pop y to m
-    emit_pop_to_m()
-    # we can subtract them, if the result is 0, return -1, else return 0
-    print('D=M-D')
-    #set up stack
-    print('@SP')
-    print('A=M')
-    #eagerly set result to equal (true)
-    print('M=-1')
-    #jump to 'notequal' part to return 0
-    print(f'@ENDEQ.{branch_counter}')
-    print('D;JEQ')
-    #not equal - set *SP=0
-    print('@SP')
-    print('A=M')
-    print('M=0')
-    print(f'(ENDEQ.{branch_counter})')
-    #increase SP
-    print('@SP')
-    print('M=M+1')
+    emit_boolean('JEQ')
 
 branch_counter = 0
 
@@ -215,8 +172,6 @@ def initialize_vm():
     print('D=A')
     print('@SP')
     print('M=D')
-    print('@0')
-    print('D=A')
 
 initialize_vm()
 for line in lines:
