@@ -63,14 +63,6 @@ def handle_push_constant(constant):
     emit_push_d()
 
 def emit_pop_to_d():
-    pass
-
-def emit_pop_to_m():
-    pass
-
-def emit_add():
-    #pop x,y, add, push
-    
     #decrement SP to point to X
     print('@SP')
     print('M=M-1')
@@ -79,6 +71,7 @@ def emit_add():
     print('A=M')
     print('D=M')
 
+def emit_pop_to_m():
     #decrement SP to point to Y
     print('@SP')
     print('M=M-1')
@@ -86,11 +79,21 @@ def emit_add():
     #pop y "to M"
     print('A=M')
 
+def emit_xy_operation(operand):
+    #pop x,y, operation, push
+    emit_pop_to_d()
+
+    #decrement SP to point to Y
+    emit_pop_to_m()
+
     #add to D
-    print('D=D+M')
+    print(f'D=D{operand}M')
     
     #push result
     emit_push_d()
+
+def emit_add():
+    emit_xy_operation('+')
 
 
 def initialize_vm():
@@ -129,11 +132,3 @@ for line in lines:
         emit_not()
     else:
         raise Exception(f'Unknown operation:{line}')
-        
-    # neg = -y
-# eq  = x == 0
-# gt  = x > y
-# lt  = x < y
-# and = x and y
-# or  = x or y
-# not = not x
