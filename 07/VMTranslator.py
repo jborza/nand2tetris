@@ -94,22 +94,22 @@ def emit_xy_operation(operand):
     emit_pop_to_m()
 
     #add to D
-    print(f'D=D{operand}M')
+    print(f'D={operand}')
     
     #push result
     emit_push_d()
 
 def emit_add():
-    emit_xy_operation('+')
+    emit_xy_operation('D+M')
 
 def emit_sub():
-    emit_xy_operation('-')
+    emit_xy_operation('M-D')
 
 def emit_and():
-    emit_xy_operation('&')
+    emit_xy_operation('D&M')
 
 def emit_or():
-    emit_xy_operation('|')
+    emit_xy_operation('D|M')
 
 #unary operations
 def emit_unary(operation):
