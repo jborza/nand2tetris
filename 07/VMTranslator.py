@@ -116,7 +116,7 @@ def emit_unary(operation):
     #pop x
     emit_pop_to_m()
     #do operation
-    print('-D')
+    print(f'D={operation}M')
      #push result
     emit_push_d()
 
