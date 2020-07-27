@@ -128,11 +128,11 @@ def emit_not():
 
 def emit_lt():
     #x<y
-    print('~~~lt')
+    print('//!!!lt')
 
 def emit_gt():
     #x>y
-    print('~~~gt')
+    print('//!!!gt')
 
 def emit_eq():
     global branch_counter
@@ -146,19 +146,21 @@ def emit_eq():
     print('D=D-M')
     #set up stack
     print('@SP')
-    print('A=M-1')
+    print('A=M')
     #eagerly set result to equal (true)
     print('M=-1')
     #jump to 'notequal' part to return 0
-    print(f'@(ENDEQ.{branch_counter})')
+    print(f'@ENDEQ.{branch_counter}')
     print('D;JEQ')
     print(f'(NEQ.{branch_counter})')
     #not equal - set *SP=0
     print('@SP')
+    print('A=M')
     print('M=0')
     print(f'(ENDEQ.{branch_counter})')
-    #compare to 
-    #TODO finish!!
+    #increase SP
+    print('@SP')
+    print('M=M+1')
 
 branch_counter = 0
 
