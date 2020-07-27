@@ -3,13 +3,14 @@
 # add = x+y
 # sub = x-y
 # neg = -y
-# eq  = x == 0
+# eq  = x == y (docs say x==0)
 # gt  = x > y
 # lt  = x < y
 # and = x and y
 # or  = x or y
 # not = not x
 # push constant x
+# boolean true is -1, false is 0
 
 ####
 # memory access:
@@ -53,14 +54,18 @@ def emit_push_d():
     print('M=D')
     # increment SP
     print('@SP')
-    print('D=M+1')
-    print('M=D')
+    print('M=M+1')
 
 def handle_push_constant(constant):
+    # store constant (in D) to address pointed by SP
     print(f'@{constant}')
     print('D=A')
-    # store constant (in D) to address pointed by SP
-    emit_push_d()
+    print('@SP')
+    print('A=M')
+    print('M=D')
+    #increment SP
+    print('@SP')
+    print('M=M+1')
 
 def emit_pop_to_d():
     #decrement SP to point to X
@@ -106,12 +111,6 @@ def emit_and():
 def emit_or():
     emit_xy_operation('|')
 
-def emit_eq():
-    #pop x
-    emit_pop_to_m()
-    #compare to 
-    #TODO finish!!
-
 #unary operations
 def emit_unary(operation):
     #pop x
@@ -127,6 +126,42 @@ def emit_neg():
 def emit_not():
     emit_unary('!')
 
+def emit_lt():
+    #x<y
+    print('~~~lt')
+
+def emit_gt():
+    #x>y
+    print('~~~gt')
+
+def emit_eq():
+    global branch_counter
+    branch_counter+=1
+    #pop x
+    emit_pop_to_d()
+    #pop y to m
+    emit_pop_to_m()
+    # if they are equal, pop 
+    # we can subtract them, if the result is 0, return -1, else return 0
+    print('D=D-M')
+    #set up stack
+    print('@SP')
+    print('A=M-1')
+    #eagerly set result to equal (true)
+    print('M=-1')
+    #jump to 'notequal' part to return 0
+    print(f'@(ENDEQ.{branch_counter})')
+    print('D;JEQ')
+    print(f'(NEQ.{branch_counter})')
+    #not equal - set *SP=0
+    print('@SP')
+    print('M=0')
+    print(f'(ENDEQ.{branch_counter})')
+    #compare to 
+    #TODO finish!!
+
+branch_counter = 0
+
 def initialize_vm():
     # set *sp=256
     print('@256')
@@ -139,7 +174,7 @@ def initialize_vm():
 initialize_vm()
 for line in lines:
     print(f'//{line}')
-    m = re.match('push constant (.+?)', line)
+    m = re.match('push constant (.+)', line)
     if(m):
         constant = m.group(1)
         handle_push_constant(constant)
