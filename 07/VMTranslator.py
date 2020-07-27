@@ -128,11 +128,58 @@ def emit_not():
 
 def emit_lt():
     #x<y
-    print('//!!!lt')
+    global branch_counter
+    branch_counter+=1
+    #pop x
+    emit_pop_to_d()
+    #pop y to m
+    emit_pop_to_m()
+    #3-4 = -1
+    # we can subtract them, if the result is negative (x-y<0), return -1, else return 0
+    print('D=M-D')
+    #set up stack
+    print('@SP')
+    print('A=M')
+    #eagerly set result to equal (true)
+    print('M=-1')
+    #jump to 'notequal' part to return 0
+    print(f'@ENDLT.{branch_counter}')
+    print('D;JLT')
+    #not equal - set *SP=0
+    print('@SP')
+    print('A=M')
+    print('M=0')
+    print(f'(ENDLT.{branch_counter})')
+    #increase SP
+    print('@SP')
+    print('M=M+1')
 
 def emit_gt():
     #x>y
-    print('//!!!gt')
+    global branch_counter
+    branch_counter+=1
+    #pop x
+    emit_pop_to_d()
+    #pop y to m
+    emit_pop_to_m()
+    # we can subtract them, if the result is positive (x-y>0), return -1, else return 0
+    print('D=M-D')
+    #set up stack
+    print('@SP')
+    print('A=M')
+    #eagerly set result to equal (true)
+    print('M=-1')
+    #jump to 'notequal' part to return 0
+    print(f'@ENDGT.{branch_counter}')
+    print('D;JGT')
+    #not equal - set *SP=0
+    print('@SP')
+    print('A=M')
+    print('M=0')
+    print(f'(ENDGT.{branch_counter})')
+    #increase SP
+    print('@SP')
+    print('M=M+1')
 
 def emit_eq():
     global branch_counter
@@ -141,9 +188,8 @@ def emit_eq():
     emit_pop_to_d()
     #pop y to m
     emit_pop_to_m()
-    # if they are equal, pop 
     # we can subtract them, if the result is 0, return -1, else return 0
-    print('D=D-M')
+    print('D=M-D')
     #set up stack
     print('@SP')
     print('A=M')
@@ -152,7 +198,6 @@ def emit_eq():
     #jump to 'notequal' part to return 0
     print(f'@ENDEQ.{branch_counter}')
     print('D;JEQ')
-    print(f'(NEQ.{branch_counter})')
     #not equal - set *SP=0
     print('@SP')
     print('A=M')
