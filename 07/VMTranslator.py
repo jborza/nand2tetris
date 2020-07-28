@@ -49,24 +49,18 @@ for line in fileinput.input():
 def emit_push_d():
     #set address pointed by SP
     print('@SP')
-    print('A=M')
-    #now M points to M[SP]
+    #increment SP value already, increase A to 1 more than we need
+    print('AM=M+1')
+    #decrement A from the previous step, SP is already incremented from the prvious step
+    print('A=A-1')
+    #*SP=D
     print('M=D')
-    # increment SP
-    print('@SP')
-    print('M=M+1')
 
 def handle_push_constant(constant):
     # store constant (in D) to address pointed by SP
     print(f'@{constant}')
     print('D=A')
-    print('@SP')
-    #increment SP value already, increase A to 1 more than we need
-    print('AM=M+1')
-    #decrement A from the previous step
-    print('A=A-1')
-    #*SP=D
-    print('M=D')
+    emit_push_d()
 
 def emit_pop_to_d():
     #decrement SP to point to X
