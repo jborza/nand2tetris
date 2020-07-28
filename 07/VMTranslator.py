@@ -61,11 +61,12 @@ def handle_push_constant(constant):
     print(f'@{constant}')
     print('D=A')
     print('@SP')
-    print('A=M')
+    #increment SP value already, increase A to 1 more than we need
+    print('AM=M+1')
+    #decrement A from the previous step
+    print('A=A-1')
+    #*SP=D
     print('M=D')
-    #increment SP
-    print('@SP')
-    print('M=M+1')
 
 def emit_pop_to_d():
     #decrement SP to point to X
@@ -99,18 +100,6 @@ def emit_xy_operation(operand):
     #push result
     emit_push_d()
 
-def emit_add():
-    emit_xy_operation('D+M')
-
-def emit_sub():
-    emit_xy_operation('M-D')
-
-def emit_and():
-    emit_xy_operation('D&M')
-
-def emit_or():
-    emit_xy_operation('D|M')
-
 #unary operations
 def emit_unary(operation):
     #pop x
@@ -119,12 +108,6 @@ def emit_unary(operation):
     print(f'D={operation}M')
      #push result
     emit_push_d()
-
-def emit_neg():
-    emit_unary('-')
-
-def emit_not():
-    emit_unary('!')
 
 def emit_boolean(operation):
     global branch_counter
@@ -152,6 +135,26 @@ def emit_boolean(operation):
     #increase SP
     print('@SP')
     print('M=M+1')
+
+#vm opcode implementation 
+
+def emit_add():
+    emit_xy_operation('D+M')
+
+def emit_sub():
+    emit_xy_operation('M-D')
+
+def emit_and():
+    emit_xy_operation('D&M')
+
+def emit_or():
+    emit_xy_operation('D|M')
+
+def emit_neg():
+    emit_unary('-')
+
+def emit_not():
+    emit_unary('!')
 
 def emit_lt():
     #x<y
