@@ -54,9 +54,82 @@ def emit_push_d():
     #decrement A from the previous step, SP is already incremented from the prvious step
     print('A=A-1')
     #*SP=D
-    print('M=D')
+    print('M=D')    
 
-def handle_push_constant(constant):
+def get_segment_address(segment):
+    return {
+        'local':'@LCL',
+        'argument':'@ARG',
+        'this':'@THIS',
+        'that':'@THAT'
+    }[segment]
+
+def emit_pop(segment, offset):
+    #M[@segment + offset] = M[@SP]
+    #pop a number off the stack into D
+    emit_pop_to_d()
+    #move to a temp register R13
+    print('@R13')
+    print('M=D')
+    #now the problem is M[@segment+offset] = R13
+    segment_addres = get_segment_address(segment)
+    print(segment_addres)
+#    if(offset > 0):
+    print(f'@{offset}')
+    print('D=D+A')
+    #now M[D] = R13
+    print('A=D')
+    #now M=R13
+
+def emit_push(segment, offset):
+    if(segment == 'constant'):
+        emit_push_constant(offset)
+        return
+    #M[SP] = M[segment + offset]
+    #get destination address
+    segment_addres = get_segment_address(segment)
+    print(segment_addres)
+    print('D=M')
+    #print('D=M')
+    #todo optimize offset s0 and 1 
+    print(f'@{offset}')
+    print('D=D+A')
+    #read target value into D: D=M[segment + offset]
+    print('A=D')
+    print('D=M')
+    #store D into M[SP]
+    emit_push_d()
+
+def emit_pop2(segment, offset):
+    #pop a number off the stack into D
+    #emit_pop_to_d()
+    #move to a temp register R13
+    #print('@R13')
+    #print('M=D')
+    #move d to segment base address + offset
+
+    #calculate target address
+    #TODO special cases for offset 0,1
+    print(f'@{offset}')
+    print('D=A')
+    #now A contains offset
+    segment_addres = get_segment_address(segment)
+    print(segment_addres)
+    print('D=D+A')
+    #now D contains segment address + offset and R13 contains the value
+    #print('A=D')
+
+    emit_pop_to_m()
+    #M contains value, D contains address
+    print('@R13')
+
+    ##move R13 to M somehow
+    #print('@R13')
+    #print('D=M')
+    #print('M=')
+    
+
+def emit_push_constant(constant):
     # store constant (in D) to address pointed by SP
     print(f'@{constant}')
     print('D=A')
@@ -65,19 +138,18 @@ def handle_push_constant(constant):
 def emit_pop_to_d():
     #decrement SP to point to X
     print('@SP')
-    print('M=M-1')
+    #pop y "to M" and decrement value of SP
+    print('AM=M-1')
     
-    #pop x to D
-    print('A=M')
+    #move M (value of x) to D
     print('D=M')
 
 def emit_pop_to_m():
     #decrement SP to point to Y
     print('@SP')
-    print('M=M-1')
+    #pop y "to M" and decrement value of SP
+    print('AM=M-1')
 
-    #pop y "to M"
-    print('A=M')
 
 def emit_xy_operation(operand):
     #pop x,y, operation, push
@@ -169,14 +241,41 @@ def initialize_vm():
     print('D=A')
     print('@SP')
     print('M=D')
+    # set local=300
+    print('@300')
+    print('D=A')
+    print('@LCL')
+    print('M=D')
+    # set argument=400
+    print('@400')
+    print('D=A')
+    print('@ARG')
+    print('M=D')
+    # set this=3000
+    print('@3000')
+    print('D=A')
+    print('@THIS')
+    print('M=D')
+    # set that=3010
+    print('@3010')
+    print('D=A')
+    print('@THAT')
+    print('M=D')
+
 
 initialize_vm()
 for line in lines:
     print(f'//{line}')
-    m = re.match('push constant (.+)', line)
-    if(m):
-        constant = m.group(1)
-        handle_push_constant(constant)
+    match_push = re.match('push (constant|local|static|argument|this|that|temp|pointer) (.+)', line)
+    match_pop = re.match('pop (local|static|argument|this|that|temp|pointer) (.+)', line)
+    if(match_push):
+        offset = match_push.group(2)
+        segment = match_push.group(1)
+        emit_push(segment, offset)
+    elif(match_pop):
+        offset = match_pop.group(2)
+        segment = match_pop.group(1)
+        emit_pop(segment, offset)
     elif(line == 'add'):
         emit_add()
     elif line == 'sub':
