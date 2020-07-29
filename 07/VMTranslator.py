@@ -66,14 +66,23 @@ def get_segment_address(segment):
         'pointer':'@3'
     }[segment]
 
-def emit_pop(segment, offset):
-    #M[@segment + offset] = M[@SP]
+def load_segment_offset_address_to_d(segment, offset):
     segment_addres = get_segment_address(segment)
     print(segment_addres)
-    print('D=M')
-#    if(offset > 0):
-    print(f'@{offset}')
-    print('D=D+A')
+    #optimize offset s0 and 1 
+    offsetInt = int(offset)
+    if(offsetInt == 0):
+        print('D=M')
+    elif(offsetInt == 1):
+        print('D=M+1')
+    else:
+        print('D=M')
+        print(f'@{offset}')
+        print('D=D+A')
+
+def emit_pop(segment, offset):
+    #M[@segment + offset] = M[@SP]
+    load_segment_offset_address_to_d(segment, offset)
     #save address to R13
     print('@R13')
     print('M=D')
@@ -90,14 +99,8 @@ def emit_push(segment, offset):
         emit_push_constant(offset)
         return
     #M[SP] = M[segment + offset]
-    #get destination address
-    segment_addres = get_segment_address(segment)
-    print(segment_addres)
-    print('D=M')
-    #print('D=M')
-    #todo optimize offset s0 and 1 
-    print(f'@{offset}')
-    print('D=D+A')
+    #get destination address to D
+    load_segment_offset_address_to_d(segment, offset)
     #read target value into D: D=M[segment + offset]
     print('A=D')
     print('D=M')
