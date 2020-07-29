@@ -32,6 +32,11 @@
 import fileinput
 import re 
 
+TEMP_ADDRESS = 5
+TEMP_END_ADDRESS = 12
+POINTER_ADDRESS = 13
+POINTER_END_ADDRESS = 14
+
 # first pass: strip comments and blank lines
 lines = []
 for line in fileinput.input():
@@ -61,21 +66,33 @@ def get_segment_address(segment):
         'local':'@LCL',
         'argument':'@ARG',
         'this':'@THIS',
-        'that':'@THAT',
-        'temp':'@5',
-        'pointer':'@3'
+        'that':'@THAT'
     }[segment]
 
 def load_segment_offset_address_to_d(segment, offset):
+    offsetInt = int(offset)
+
+    #special cases:
+    #fold temp+offset into a single load
+    if(segment == 'temp'):
+        print(f'@{TEMP_ADDRESS + offsetInt}')
+        print('D=A')
+        return
+
+    #fold pointer+offset into a single load
+    elif(segment == 'pointer'):
+        print(f'@{POINTER_ADDRESS + offsetInt}')
+        print('D=A')
+        return
+
     segment_addres = get_segment_address(segment)
     print(segment_addres)
-    #optimize offset s0 and 1 
-    offsetInt = int(offset)
-    if(offsetInt == 0):
+    #do D=M[segment] + offset, but optimize offset s0 and 1 
+    if(offsetInt == 0): #D=M[segment]
         print('D=M')
-    elif(offsetInt == 1):
+    elif(offsetInt == 1): #D=M[segment]+1
         print('D=M+1')
-    else:
+    else: #general case D=M[segment] + offset
         print('D=M')
         print(f'@{offset}')
         print('D=D+A')
