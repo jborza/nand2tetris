@@ -30,12 +30,16 @@
 # return
 
 import fileinput
+import os
 import re 
+import sys
 
 TEMP_ADDRESS = 5
 TEMP_END_ADDRESS = 12
 POINTER_ADDRESS = 13
 POINTER_END_ADDRESS = 14
+
+branch_counter = 0
 
 # first pass: strip comments and blank lines
 lines = []
@@ -69,6 +73,11 @@ def get_segment_address(segment):
         'that':'@THAT'
     }[segment]
 
+def get_module_name():
+    filename = sys.argv[1]
+    return os.path.splitext(os.path.basename(filename))[0]
+    #return sys.argv[1]
+
 def load_segment_offset_address_to_d(segment, offset):
     offsetInt = int(offset)
 
@@ -82,6 +91,12 @@ def load_segment_offset_address_to_d(segment, offset):
     #fold pointer+offset into a single load
     elif(segment == 'pointer'):
         print(f'@{POINTER_ADDRESS + offsetInt}')
+        print('D=A')
+        return
+
+    #special handling for static variables
+    elif(segment == 'static'):
+        print(f'@{get_module_name()}.{offset}')
         print('D=A')
         return
 
@@ -228,7 +243,6 @@ def emit_gt():
 def emit_eq():
     emit_boolean('JEQ')
 
-branch_counter = 0
 
 def initialize_vm():
     # set *sp=256
@@ -246,19 +260,19 @@ def initialize_vm():
     print('D=A')
     print('@ARG')
     print('M=D')
-    # set this=3000
-    print('@3000')
-    print('D=A')
-    print('@THIS')
-    print('M=D')
-    # set that=3010
-    print('@3010')
-    print('D=A')
-    print('@THAT')
-    print('M=D')
-
+    # #set this=3000
+    # print('@3000')
+    # print('D=A')
+    # print('@THIS')
+    # print('M=D')
+    # # set that=3010
+    # print('@3010')
+    # print('D=A')
+    # print('@THAT')
+    # print('M=D')
 
 initialize_vm()
+
 for line in lines:
     print(f'//{line}')
     match_push = re.match('push (constant|local|static|argument|this|that|temp|pointer) (.+)', line)
