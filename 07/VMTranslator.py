@@ -61,25 +61,29 @@ def get_segment_address(segment):
         'local':'@LCL',
         'argument':'@ARG',
         'this':'@THIS',
-        'that':'@THAT'
+        'that':'@THAT',
+        'temp':'@5',
+        'pointer':'@3'
     }[segment]
 
 def emit_pop(segment, offset):
     #M[@segment + offset] = M[@SP]
-    #pop a number off the stack into D
-    emit_pop_to_d()
-    #move to a temp register R13
-    print('@R13')
-    print('M=D')
-    #now the problem is M[@segment+offset] = R13
     segment_addres = get_segment_address(segment)
     print(segment_addres)
+    print('D=M')
 #    if(offset > 0):
     print(f'@{offset}')
     print('D=D+A')
-    #now M[D] = R13
-    print('A=D')
-    #now M=R13
+    #save address to R13
+    print('@R13')
+    print('M=D')
+    #pop value from SP to D
+    emit_pop_to_d()
+    #use R13 as pointer
+    print('@R13')
+    print('A=M')
+    #M[R13] = D
+    print('M=D')
 
 def emit_push(segment, offset):
     if(segment == 'constant'):
@@ -99,35 +103,6 @@ def emit_push(segment, offset):
     print('D=M')
     #store D into M[SP]
     emit_push_d()
-
-def emit_pop2(segment, offset):
-    #pop a number off the stack into D
-    #emit_pop_to_d()
-    #move to a temp register R13
-    #print('@R13')
-    #print('M=D')
-    #move d to segment base address + offset
-
-    #calculate target address
-    #TODO special cases for offset 0,1
-    print(f'@{offset}')
-    print('D=A')
-    #now A contains offset
-    segment_addres = get_segment_address(segment)
-    print(segment_addres)
-    print('D=D+A')
-    #now D contains segment address + offset and R13 contains the value
-    #print('A=D')
-
-    emit_pop_to_m()
-    #M contains value, D contains address
-    print('@R13')
-
-    ##move R13 to M somehow
-    #print('@R13')
-    #print('D=M')
-    #print('M=')
-    
 
 def emit_push_constant(constant):
     # store constant (in D) to address pointed by SP
