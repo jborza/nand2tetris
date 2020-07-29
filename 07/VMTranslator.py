@@ -88,9 +88,14 @@ def load_segment_offset_address_to_d(segment, offset):
         print('D=A')
         return
 
-    #fold pointer+offset into a single load
+    #special resolution of pointer segment
     elif(segment == 'pointer'):
-        print(f'@{POINTER_ADDRESS + offsetInt}')
+        if(offsetInt == 0):
+            print(f'@THIS')
+        elif(offsetInt == 1):
+            print(f'@THAT')
+        else:
+             raise Exception(f'Invalid pointer {offset}')
         print('D=A')
         return
 
