@@ -76,7 +76,6 @@ def get_segment_address(segment):
 def get_module_name():
     filename = sys.argv[1]
     return os.path.splitext(os.path.basename(filename))[0]
-    #return sys.argv[1]
 
 def load_segment_offset_address_to_d(segment, offset):
     offsetInt = int(offset)
