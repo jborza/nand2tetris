@@ -164,7 +164,6 @@ def emit_pop_to_m():
     #pop y "to M" and decrement value of SP
     print('AM=M-1')
 
-
 def emit_xy_operation(operand):
     #pop x,y, operation, push
     #pop x
@@ -255,9 +254,9 @@ def emit_flow_control(flow_statement, flow_label_name):
         print('0;JMP')
     else: #if-goto
         #we have to pop the stack and do something if it's 0 or -1 - so jump on negative?
-        emit_pop_to_m()
+        emit_pop_to_d()
         print(f'@{get_module_name()}.{flow_label_name}')
-        print('M;JLT')
+        print('D;JGT')
 
 def initialize_vm():
     # set *sp=256
