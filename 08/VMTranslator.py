@@ -40,6 +40,7 @@ POINTER_ADDRESS = 13
 POINTER_END_ADDRESS = 14
 
 branch_counter = 0
+return_counter = 0
 
 # first pass: strip comments and blank lines
 lines = []
@@ -258,13 +259,30 @@ def emit_flow_control(flow_statement, flow_label_name):
         print(f'@{get_module_name()}.{flow_label_name}')
         print('D;JGT')
 
-def emit_call():
+def emit_push_label(label):
+    print(label)
+    print('D=M')
+    emit_push_d()
+
+def emit_call(function_name, function_arg_count):
+    global return_counter
+    return_counter += 1
     #arguments are already pushed on the stack
     #push return address
-    #push saved LCL
-    #push saved ARG
-    #push saved THIS
-    #push saved THAT
+    emit_push_label(f'@RET_{return_counter}')
+    #push LCL
+    emit_push_label('@LCL')
+    #push ARG
+    emit_push_label('@ARG')
+    #push THIS
+    emit_push_label('@THIS')
+    #push THAT
+    emit_push_label('@THAT')
+    #goto function label
+    print(f'@{function_name}')
+    print('A=M')
+    #emit return label
+    print(f'(RET_{return_counter})')
     pass
 
 def emit_function(function_name, function_local_vars):
@@ -308,8 +326,6 @@ def emit_return():
     # restore THAT of the caller *(FRAME-1)
     print('@R13 // RESTORE THAT')
     print('A=M-1') #A = FRAME-1
-    #print('@1')
-    #print('A=D-A') #A = FRAME-1
     print('D=M') #D = *(FRAME-1)
     print('@THAT')
     print('M=D')
@@ -337,7 +353,6 @@ def emit_return():
     print('D=M') #D = *(FRAME-4)
     print('@LCL')
     print('M=D')
-
     # goto return address
     print('@R14')
     print('A=M')
@@ -355,6 +370,7 @@ for line in lines:
     match_pop = re.match('pop (local|static|argument|this|that|temp|pointer) (.+)', line)
     match_flow = re.match('(label|goto|if-goto) (.+?)', line)
     match_function = re.match('function (.+?) (\d+)', line)
+    match_call = re.match('call (.+?) (\d+)', line)
 
     if(match_push):
         offset = match_push.group(2)
@@ -372,6 +388,10 @@ for line in lines:
         function_name = match_function.group(1)
         function_local_vars = int(match_function.group(2))
         emit_function(function_name, function_local_vars)
+    elif(match_call):
+        function_name = match_call.group(1)
+        function_arg_count = int(match_call.group(2))
+        emit_call(function_name, function_arg_count)
     elif(line == 'add'):
         emit_add()
     elif line == 'sub':
