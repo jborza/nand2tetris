@@ -258,32 +258,94 @@ def emit_flow_control(flow_statement, flow_label_name):
         print(f'@{get_module_name()}.{flow_label_name}')
         print('D;JGT')
 
-def initialize_vm():
-    # set *sp=256
-    print('@256')
-    print('D=A')
+def emit_call():
+    #arguments are already pushed on the stack
+    #push return address
+    #push saved LCL
+    #push saved ARG
+    #push saved THIS
+    #push saved THAT
+    pass
+
+def emit_function(function_name, function_local_vars):
+    # emit function label
+    print(f'({function_name})')
+    # initialize n local variables at the stack
+    for i in range(0, function_local_vars):
+        print('@SP')
+        #increment SP value, increase A to 1 more than we need
+        print('AM=M+1')
+        #decrement A from the previous step to point to M[SP]
+        print('A=A-1')
+        #store initial value of 0
+        print('M=0')
+
+def emit_return():
+    #save local frame
+    # FRAME = LCL (frame is R13)
+    print('@LCL //SAVE LOCAL FRAME')
+    print('D=M')
+    print('@R13')
+    print('M=D')
+    # put return address in temp variable R14 *(FRAME-5)
+    print('@R13 //RETURN ADDRESS TO R14')
+    print('D=M')
+    print('@5')
+    print('A=D-A') #D now contains address FRAME-5
+    print('D=M') #D now contains value of *(FRAME-5)
+    print('@R14')
+    print('M=D') # R14 contains return address
+    # reposition return value for the caller (pushed onto the stack by the function) *ARG=pop()
+    emit_pop_to_d()
+    print('@ARG')
+    print('A=M')
+    print('M=D')
+    # restore SP of the caller: SP = ARG+1
+    print('@ARG //RESTORE SP')
+    print('D=M+1')
     print('@SP')
     print('M=D')
-    # set local=300
-    print('@300')
-    print('D=A')
-    print('@LCL')
+    # restore THAT of the caller *(FRAME-1)
+    print('@R13 // RESTORE THAT')
+    print('A=M-1') #A = FRAME-1
+    #print('@1')
+    #print('A=D-A') #A = FRAME-1
+    print('D=M') #D = *(FRAME-1)
+    print('@THAT')
     print('M=D')
-    # set argument=400
-    print('@400')
-    print('D=A')
+    # restore THIS of the caller *(FRAME-2)
+    print('@R13 //RESTORE THIS')
+    print('D=M')
+    print('@2')
+    print('A=D-A') #A = FRAME-2
+    print('D=M') #D = *(FRAME-2)
+    print('@THIS')
+    print('M=D')
+    # restore ARG of the caller *(FRAME-3)
+    print('@R13 //RESTORE ARG')
+    print('D=M')
+    print('@3')
+    print('A=D-A') #A = FRAME-3
+    print('D=M') #D = *(FRAME-3)
     print('@ARG')
     print('M=D')
-    # #set this=3000
-    # print('@3000')
-    # print('D=A')
-    # print('@THIS')
-    # print('M=D')
-    # # set that=3010
-    # print('@3010')
-    # print('D=A')
-    # print('@THAT')
-    # print('M=D')
+    # restore LCL of the caller *(FRAME-4)
+    print('@R13 //RESTORE LCL')
+    print('D=M')
+    print('@4')
+    print('A=D-A') #A = FRAME-4
+    print('D=M') #D = *(FRAME-4)
+    print('@LCL')
+    print('M=D')
+
+    # goto return address
+    print('@R14')
+    print('A=M')
+    pass
+
+
+def initialize_vm():
+        pass
 
 initialize_vm()
 
@@ -292,6 +354,7 @@ for line in lines:
     match_push = re.match('push (constant|local|static|argument|this|that|temp|pointer) (.+)', line)
     match_pop = re.match('pop (local|static|argument|this|that|temp|pointer) (.+)', line)
     match_flow = re.match('(label|goto|if-goto) (.+?)', line)
+    match_function = re.match('function (.+?) (\d+)', line)
 
     if(match_push):
         offset = match_push.group(2)
@@ -305,6 +368,10 @@ for line in lines:
         flow_statement = match_flow.group(1)
         flow_label_name = match_flow.group(2)
         emit_flow_control(flow_statement, flow_label_name)
+    elif(match_function):
+        function_name = match_function.group(1)
+        function_local_vars = int(match_function.group(2))
+        emit_function(function_name, function_local_vars)
     elif(line == 'add'):
         emit_add()
     elif line == 'sub':
@@ -323,5 +390,7 @@ for line in lines:
         emit_or()
     elif(line == 'not'):
         emit_not()
+    elif(line == 'return'):
+        emit_return()
     else:
         raise Exception(f'Unknown operation:{line}')
