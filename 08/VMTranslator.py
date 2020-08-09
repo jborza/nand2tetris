@@ -275,7 +275,7 @@ def emit_call(function_name, function_arg_count):
     return_counter += 1
     #arguments are already pushed on the stack
     #push return address
-    emit_push_address(f'@{function_name}$RET_{return_counter} //push return address')
+    emit_push_address(f'@{get_module_name()}$RET_{return_counter} //push return address')
     #push LCL
     emit_push_label('@LCL //push LCL')
     #push ARG
@@ -300,7 +300,7 @@ def emit_call(function_name, function_arg_count):
     print(f'@{function_name} //goto {function_name}')
     print('0;JMP')
     #emit return label
-    print(f'({function_name}$RET_{return_counter})')
+    print(f'({get_module_name()}$RET_{return_counter})')
     pass
 
 def emit_function(function_name, function_local_vars):
@@ -379,6 +379,9 @@ def emit_return():
 
 
 def initialize_vm():
+    #the ugly hack to generate initialization code only once
+    if(get_module_name() != 'Sys'):
+        return
     #SP=256
     print('@256 //SP=256')
     print('D=A')
@@ -387,7 +390,6 @@ def initialize_vm():
     #call Sys.init
     emit_call('Sys.init', 0)
     
-
 initialize_vm()
 
 for line in lines:
