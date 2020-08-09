@@ -269,18 +269,30 @@ def emit_call(function_name, function_arg_count):
     return_counter += 1
     #arguments are already pushed on the stack
     #push return address
-    emit_push_label(f'@RET_{return_counter}')
+    emit_push_label(f'@RET_{return_counter} //push return address')
     #push LCL
-    emit_push_label('@LCL')
+    emit_push_label('@LCL //push LCL')
     #push ARG
-    emit_push_label('@ARG')
+    emit_push_label('@ARG //push ARG')
     #push THIS
-    emit_push_label('@THIS')
+    emit_push_label('@THIS //push THIS')
     #push THAT
-    emit_push_label('@THAT')
+    emit_push_label('@THAT //push THAT')
+    #reposition ARG to SP - arg_count - 5 
+    print('@SP //reposition ARG to SP')
+    print('D=M')
+    print(f'@{function_arg_count+5}')
+    print('D=D-A')
+    print('@ARG')
+    print('M=D')
+    #reposition LCL to SP
+    print('@SP //reposition LCL to SP')
+    print('D=M')
+    print('@LCL')
+    print('M=D')
     #goto function label
-    print(f'@{function_name}')
-    print('A=M')
+    print(f'@{function_name} //goto {function_name}')
+    print('0;JMP')
     #emit return label
     print(f'(RET_{return_counter})')
     pass
@@ -290,7 +302,7 @@ def emit_function(function_name, function_local_vars):
     print(f'({function_name})')
     # initialize n local variables at the stack
     for i in range(0, function_local_vars):
-        print('@SP')
+        print(f'@SP //set up local {i}')
         #increment SP value, increase A to 1 more than we need
         print('AM=M+1')
         #decrement A from the previous step to point to M[SP]
@@ -368,7 +380,7 @@ for line in lines:
     print(f'//{line}')
     match_push = re.match('push (constant|local|static|argument|this|that|temp|pointer) (.+)', line)
     match_pop = re.match('pop (local|static|argument|this|that|temp|pointer) (.+)', line)
-    match_flow = re.match('(label|goto|if-goto) (.+?)', line)
+    match_flow = re.match('(label|goto|if-goto) (.+)', line)
     match_function = re.match('function (.+?) (\d+)', line)
     match_call = re.match('call (.+?) (\d+)', line)
 
