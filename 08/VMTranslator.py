@@ -319,7 +319,7 @@ def emit_function(function_name, function_local_vars):
 def emit_return():
     #save local frame
     # FRAME = LCL (frame is R13)
-    print('@LCL //SAVE LOCAL FRAME')
+    print('@LCL //SAVE LCL FRAME to R13')
     print('D=M')
     print('@R13')
     print('M=D')
@@ -373,6 +373,7 @@ def emit_return():
     print('M=D')
     # goto return address
     print('@R14')
+    print('A=M')
     print('0;JMP')
     pass
 
