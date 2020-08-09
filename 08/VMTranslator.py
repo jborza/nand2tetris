@@ -259,6 +259,12 @@ def emit_flow_control(flow_statement, flow_label_name):
         print(f'@{get_module_name()}.{flow_label_name}')
         print('D;JGT')
 
+def emit_push_address(address):
+    # store constant (in D) to address pointed by SP
+    print(f'{address}')
+    print('D=A')
+    emit_push_d()
+
 def emit_push_label(label):
     print(label)
     print('D=M')
@@ -269,7 +275,7 @@ def emit_call(function_name, function_arg_count):
     return_counter += 1
     #arguments are already pushed on the stack
     #push return address
-    emit_push_label(f'@RET_{return_counter} //push return address')
+    emit_push_address(f'@RET_{return_counter} //push return address')
     #push LCL
     emit_push_label('@LCL //push LCL')
     #push ARG
@@ -367,7 +373,7 @@ def emit_return():
     print('M=D')
     # goto return address
     print('@R14')
-    print('A=M')
+    print('0;JMP')
     pass
 
 
