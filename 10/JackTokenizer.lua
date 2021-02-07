@@ -30,8 +30,15 @@ function jackTokenizer(filename)
 
     local token
     local token_value
+    local token_was_string
+
+    local symbols
+    local keywords
 
     function process(filename)
+        symbols = symbol_map()
+        keywords = keyword_map()
+
         --read file line by line
         local contents = file.read(filename)
         --strip single line comments
@@ -41,15 +48,15 @@ function jackTokenizer(filename)
         contents = string.gsub(contents, "%s", " ")
         local input_stream = contents
         
-        print(contents)
         --and token by token
 
+        print("<tokens>")
         while(hasMoreTokens(input_stream)) do
-            token, input_stream = getNextDelimitedWord(input_stream)
-            print("Next token: " .. token)
-            print("Type:" .. tokenType())
+            token, input_stream = advance(input_stream)
+            local type = tokenType()
+            utils.printf("<%s> %s </%s>\n",type, token_value, type)
         end
-        print('end!')
+        print("</tokens>")
     end
 
     function getNextDelimitedWord (input_stream)
@@ -79,8 +86,24 @@ function jackTokenizer(filename)
         return { "{","}","(",")","[","]",".",",",";","+","-","*","/","&","|","<",">","=","~"}
     end
 
+    function symbol_map()
+        local symbols = {}
+        for i,v in ipairs(symbol_list()) do
+            if v == "<" then
+                symbols[v] = "&lt;" 
+            elseif v == ">" then
+                symbols[v] = "&gt;"
+            elseif v == "&" then
+                symbols[v] = "&amp;"
+            else
+                symbols[v] = v
+            end
+        end
+        return symbols
+    end
+
     function keyword_map()
-        keywords = {}
+        local keywords = {}
         for i,v in ipairs(keyword_list()) do 
             keywords[v] = string.upper(v)
         end
@@ -89,22 +112,67 @@ function jackTokenizer(filename)
 
     -- returns boolean
     function hasMoreTokens(input_stream)
-        return input_stream ~= nil
-    end
+        if(input_stream == nil) then
+            return false
+        end
+        local trimmed = stringx.lstrip(input_stream)
+        return string.len(trimmed) > 0
+    end 
 
     -- should be called only if hasMoreTokens is true
-    function advance()
-        token = getNextDelimitedWord
+    function advance(input_stream)
+        --trim leading spaces
+        token_was_string = false
+        local input_stream = stringx.lstrip(input_stream)
+        local current_token = ""
+        --special case - the first character is a symbol
+        local firstchar = string.sub(input_stream,1,1)
+        if symbols[firstchar] ~= nil then
+            --consume just one character
+            return firstchar, string.sub(input_stream, 2)
+        end
+        if firstchar == '"' then
+            --look forward to the matching "
+            next_quote = string.find(input_stream,'"', 2)
+            current_token = string.sub(input_stream, 2,next_quote-1)
+            token_was_string = true
+            return current_token, string.sub(input_stream, next_quote+1)
+        end
+
+        --consume character by character until we get to one of the terminators (symbol or whitespace)
+        --example foo+3;
+        repeat
+            if(string.len(input_stream) == 0) then
+                print("NO INPUT!!")
+                return nil,nil
+            end
+            local char = string.sub(input_stream,1,1)
+            if char == " " or symbols[char] ~= nil then
+                --end the current token
+                return current_token, input_stream
+            end
+            current_token = current_token .. char
+            input_stream = string.sub(input_stream,2)
+        until false;
+
+        --go up to next space
+        return getNextDelimitedWord(input_stream)
+
     end
 
     -- returns the type of the current token
     function tokenType()
-        if keyword_map()[token] ~= nil then
-            token_value = keyword_map()[token]
+        --string constant
+        if token_was_string then
+            token_value = token
+            return TOKENTYPE_STRING_CONST
+        end
+        if keywords[token] ~= nil then
+            token_value = token
             return TOKENTYPE_KEYWORD
         end
-        if tablex.find(symbol_list(), token) ~= nil then
-            token_value = symbol_list()[token]
+        if symbols[token] ~= nil then
+            token_value = symbols[token]
             return TOKENTYPE_SYMBOL
         end
         --integer constant - 
@@ -113,8 +181,6 @@ function jackTokenizer(filename)
             token_value = numValue
             return TOKENTYPE_INT_CONST
         end
-        --string constant
-        --???
         --identifier [A-Za-z_][A-Za-z_0-9]*
         local match_start, match_end = string.find(token, "[A-Za-z_][A-Za-z0-9_]*")
         if match_start == 1 and match_end == string.len(token) then
@@ -151,4 +217,4 @@ function jackTokenizer(filename)
     return process(filename)
 end
 
-jackTokenizer("ArrayTest/MainMini.jack")
+jackTokenizer("ArrayTest/Main.jack")
