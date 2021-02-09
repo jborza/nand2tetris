@@ -84,8 +84,7 @@ def advance(input_stream):
         current_token += char
         input_stream = input_stream[1:]
 
-def process(filename):
-    #read file line by line
+def initialize(filename):
     file = open(filename, 'r')
 
     contents = file.read()
@@ -94,7 +93,11 @@ def process(filename):
     contents = re.sub("/\*.+\*/", " ", contents)
     #tabs and newlines to spaces
     contents = re.sub("\s", " ", contents)
-    input_stream = contents.strip()
+    return contents.strip()
+
+def tokenize(filename):
+    #read file line by line
+    input_stream = initialize(filename) # contents.strip()
     
     #and advance token by token
     print("<tokens>")
@@ -109,4 +112,37 @@ def process(filename):
 keywords = keyword_list()
 symbols = symbol_map()
 
-process('10/ArrayTest/Main.jack')
+class JackTokenizer:
+
+    def __init__(self, filename):
+        self.input_stream = initialize(filename)
+
+    def advance(self):
+        self.token, self.input_stream, self.token_was_string = advance(self.input_stream)
+        self.input_stream = self.input_stream.strip()        
+        self.token, self.token_type = tokenType(self.token, self.token_was_string)
+
+    def hasMoreTokens(self):
+        return hasMoreTokens(self.input_stream)
+
+    def valid_token_or_none(self, valid_type):
+        if(self.token_type != valid_type):
+            return None
+        return self.token
+
+    def keyword(self):
+        return self.valid_token_or_none(TOKENTYPE_KEYWORD)
+
+    def symbol(self):
+        return self.valid_token_or_none(TOKENTYPE_SYMBOL)
+
+    def identifier(self):
+        return self.valid_token_or_none(TOKENTYPE_IDENTIFIER)
+
+    def intVal(self):
+        return self.valid_token_or_none(TOKENTYPE_INT_CONST)
+
+    def stringVal(self):
+        return self.valid_token_or_none(TOKENTYPE_STRING_CONST)
+
+#tokenize('10/ArrayTest/Main.jack')
