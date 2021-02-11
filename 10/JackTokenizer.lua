@@ -133,7 +133,7 @@ function jackTokenizer(filename)
         end
         if firstchar == '"' then
             --look forward to the matching "
-            next_quote = string.find(input_stream,'"', 2)
+            local next_quote = string.find(input_stream,'"', 2)
             current_token = string.sub(input_stream, 2,next_quote-1)
             token_was_string = true
             return current_token, string.sub(input_stream, next_quote+1)
